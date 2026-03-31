@@ -46,3 +46,18 @@ export const userSettings = pgTable("user_settings", {
 
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+export const emails = pgTable("emails", {
+  id: serial("id").primaryKey(),
+
+  appId: integer("app_id").notNull(), // ← tu tenant
+
+  to: text("to").notNull(),
+  subject: text("subject").notNull(),
+  body: text("body").notNull(),
+
+  status: text("status").default("pending"), // pending | sent | failed
+  error: text("error"),
+
+  createdAt: timestamp("created_at").defaultNow(),
+});

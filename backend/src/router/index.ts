@@ -1,8 +1,13 @@
 import { Router } from "express";
 import authRoutes from "../modules/auth/auth.routes";
 import { authMiddleware } from "../modules/auth/auth.middleware";
+import { resolveApp } from "../core/middlewares/resolve-app";
+import { sendMailController } from "../modules/mailer/sendMail.controller";
 
 const router = Router();
+
+router.post("/send", resolveApp, sendMailController);
+
 
 router.use("/auth", authRoutes);
 
@@ -13,4 +18,11 @@ router.get("/health", (req, res) => {
 router.get("/private", authMiddleware, (req, res) => {
   res.json({ message: "ok" });
 });
+
+router.post(
+  "/send",
+  resolveApp,
+  sendMailController
+);
+
 export default router;

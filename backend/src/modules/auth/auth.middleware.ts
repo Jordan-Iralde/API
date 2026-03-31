@@ -20,7 +20,8 @@ export const authMiddleware = (
       appId: number;
     };
 
-    req.context = {
+    // 👇 casteo interno (clave)
+    (req as any).context = {
       userId: decoded.userId,
       appId: decoded.appId,
     };

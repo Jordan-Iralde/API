@@ -1,41 +1,27 @@
 {
   "compilerOptions": {
-
-    /* Base */
+    "ignoreDeprecations": "6.0",
     "target": "ES2020",
-    "module": "commonjs",
+    "module": "Node16",
+    "moduleResolution": "node16",
+
     "rootDir": "src",
     "outDir": "dist",
 
-    /* DX (developer experience) */
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
 
-    /* Imports más limpios */
-    "baseUrl": "./src",
-    "paths": {
-      "@core/*": ["core/*"],
-      "@modules/*": ["modules/*"],
-      "@types/*": ["types/*"]
-    },
-
-    /* Tipos */
     "typeRoots": ["./node_modules/@types", "./src/types"],
 
-    /* Node moderno */
-    "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
 
-    /* Calidad */
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
 
-    /* Performance */
-    "incremental": true
+    "incremental": true,
   },
-
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
 }
