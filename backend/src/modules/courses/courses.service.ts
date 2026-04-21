@@ -1,8 +1,14 @@
-// modules/courses/courses.service.ts
-import { prisma } from "../../core/db/schema"
+import { db } from "../../core/db";
+import { courses } from "../../core/db/schema";
+
+type CreateCourseDTO = {
+  title: string;
+  description: string;
+};
 
 export const coursesService = {
-  getAll: () => prisma.course.findMany(),
+  getAll: () => db.select().from(courses),
 
-  create: (data) => prisma.course.create({ data })
-}
+  create: (data: CreateCourseDTO) =>
+    db.insert(courses).values(data),
+};
