@@ -52,12 +52,26 @@ export const registerUser = async (
     user = existing[0];
   }
 
-  // vincular a app
-  await db.insert(userApps).values({
-    userId: user.id,
-    appId: app.id,
-    role: "user",
-  });
+    // verificar si ya existe relación user-app
+  const existingRelation = await db
+    .select()
+    .from(userApps)
+    .where(
+      and(
+        eq(userApps.userId, user.id),
+        eq(userApps.appId, app.id)
+      )
+    )
+    .limit(1);
+
+  // crear relación sólo si no existe
+  if (existingRelation.length === 0) {
+    await db.insert(userApps).values({
+      userId: user.id,
+      appId: app.id,
+      role: "user",
+    });
+  }
 
   return { id: user.id, email: user.email };
 };
@@ -90,6 +104,7 @@ export const loginUser = async (
   if (!app) throw new Error("App not found");
 
   // verificar acceso
+  // verificar acceso
   const access = await db
     .select()
     .from(userApps)
@@ -101,8 +116,13 @@ export const loginUser = async (
     )
     .limit(1);
 
+  // si no existe relación, crearla
   if (access.length === 0) {
-    throw new Error("No access to this app");
+    await db.insert(userApps).values({
+      userId: user.id,
+      appId: app.id,
+      role: "user",
+    });
   }
 
   const token = jwt.sign(
