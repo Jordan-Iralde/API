@@ -1,16 +1,30 @@
+import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 
 export const authMiddleware = (
   req: Request,
   res: Response,
   next: NextFunction
-): void => {
-  const token = req.headers["authorization"]?.split(" ")[1];
+) => {
+  const header = req.headers.authorization;
 
-  if (!token) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
+  if (!header) {
+    return res.status(401).json({ error: "Unauthorized" });
   }
 
-  next();
+  const token = header.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+
+    req.context = {
+      userId: decoded.sub,
+      appId: decoded.appId,
+      role: decoded.role,
+    };
+
+    return next();
+  } catch {
+    return res.status(401).json({ error: "Invalid token" });
+  }
 };

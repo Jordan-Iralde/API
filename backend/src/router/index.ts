@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, RequestHandler } from "express";
 import authRoutes from "../modules/auth/auth.routes";
 import { authMiddleware } from "../modules/auth/auth.middleware";
 import { resolveApp } from "../core/middlewares/resolve-app";
@@ -7,7 +7,6 @@ import contactRoutes from "../modules/contact/contact.routes";
 
 const router = Router();
 
-router.post("/send", resolveApp, sendMailController);
 router.use("/contact", contactRoutes);
 
 router.use("/auth", authRoutes);
@@ -22,8 +21,8 @@ router.get("/private", authMiddleware, (req, res) => {
 
 router.post(
   "/send",
-  resolveApp,
-  sendMailController
+  resolveApp as RequestHandler,
+  sendMailController as RequestHandler
 );
 
 export default router;

@@ -94,7 +94,7 @@ export const apiKeys = pgTable("api_keys", {
     .notNull()
     .references(() => apps.id),
 
-  key: text("key").notNull().unique(),
+  keyHash: text("key_hash").notNull().unique(),
 
   name: text("name").notNull(),
 

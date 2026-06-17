@@ -1,11 +1,15 @@
 import { Request, Response } from "express";
 import { registerUser, loginUser } from "./auth.service";
+import { AppRequest } from "../../core/types/app-request";
 
-export const register = async (req: Request, res: Response) => {
+export const register = async (
+  req: AppRequest,
+  res: Response
+) => {
   try {
-    const { email, password, appSlug  } = req.body;
+    const { email, password } = req.body;
 
-    const user = await registerUser(email, password, appSlug);
+    const user = await registerUser(email, password, req.context?.appId!);
 
     res.json(user);
   } catch (err: any) {
@@ -13,11 +17,11 @@ export const register = async (req: Request, res: Response) => {
   }
 };
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (req: AppRequest, res: Response) => {
   try {
-    const { email, password, appSlug  } = req.body;
+    const { email, password} = req.body;
 
-    const data = await loginUser(email, password, appSlug);
+    const data = await loginUser(email, password, req.context?.appId!);
 
     res.json(data);
   } catch (err: any) {

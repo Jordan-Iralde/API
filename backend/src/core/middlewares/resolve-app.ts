@@ -1,15 +1,16 @@
+import crypto from "crypto";
 import { Request, Response, NextFunction } from "express";
 import { eq, and } from "drizzle-orm";
 
 import { db } from "../db";
 import { apiKeys } from "../db/schema";
 
-interface CustomRequest extends Request {
+type CustomRequest = Omit<Request, "context"> & {
   context?: {
     userId?: number;
     appId?: number;
   };
-}
+};
 
 export const resolveApp = async (
   req: CustomRequest,
@@ -17,9 +18,9 @@ export const resolveApp = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const apiKey = req.headers["x-api-key"];
+    const apiKey = req.header("X-API-Key");
 
-    if (!apiKey || typeof apiKey !== "string") {
+    if (!apiKey) {
       res.status(401).json({
         error: "Missing API key",
       });
@@ -27,12 +28,23 @@ export const resolveApp = async (
       return;
     }
 
-    const key = await (db.query as any).apiKeys.findFirst({
-      where: and(
-        eq(apiKeys.key, apiKey),
-        eq(apiKeys.active, true)
-      ),
-    });
+    const keyHash = crypto
+      .createHash("sha256")
+      .update(apiKey)
+      .digest("hex");
+    console.log(db.query);
+
+    const [key] = await db
+      .select()
+      .from(apiKeys)
+      .where(
+        and(
+          eq(apiKeys.keyHash, keyHash),
+          eq(apiKeys.active, true)
+        )
+      )
+      .limit(1);
+    
 
     if (!key) {
       res.status(401).json({
@@ -43,13 +55,14 @@ export const resolveApp = async (
     }
 
     req.context = {
+      ...req.context,
       appId: key.appId,
     };
 
     next();
 
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error("resolveApp error:", error);
 
     res.status(500).json({
       error: "Resolve app failed",

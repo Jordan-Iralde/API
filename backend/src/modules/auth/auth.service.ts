@@ -9,13 +9,13 @@ import { and, eq } from "drizzle-orm";
 export const registerUser = async (
   email: string,
   password: string,
-  appSlug: string
+  appId: number
 ) => {
   // buscar app
   const appResult = await db
     .select()
     .from(apps)
-    .where(eq(apps.slug, appSlug))
+    .where(eq(apps.id, appId))
     .limit(1);
 
   const app = appResult[0];
@@ -79,7 +79,7 @@ export const registerUser = async (
 export const loginUser = async (
   email: string,
   password: string,
-  appSlug: string
+  appId: number
 ) => {
   const result = await db
     .select()
@@ -97,7 +97,7 @@ export const loginUser = async (
   const appResult = await db
     .select()
     .from(apps)
-    .where(eq(apps.slug, appSlug))
+    .where(eq(apps.id, appId))
     .limit(1);
 
   const app = appResult[0];
