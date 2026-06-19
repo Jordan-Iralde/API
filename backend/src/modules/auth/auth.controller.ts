@@ -8,11 +8,11 @@ export const register = async (
 ) => {
   try {
 
-    console.log("REGISTER CONTEXT", req.context);
 
-    const { email, password } = req.body;
+    const { name, email, password } = req.body;
 
     const user = await registerUser(
+      name,
       email,
       password,
       req.context?.appId!
@@ -29,7 +29,7 @@ export const register = async (
 
 export const login = async (req: AppRequest, res: Response) => {
   try {
-    const { email, password} = req.body;
+    const { email, password } = req.body;
 
     const data = await loginUser(email, password, req.context?.appId!);
 

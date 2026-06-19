@@ -1,11 +1,12 @@
 // src/modules/account/account.controller.ts
 
-import { Request, Response } from "express";
+import { Response } from "express";
+import { AppRequest } from "../../core/types/app-request";
 import * as service from "./account.service";
 
-export const getMeController = async (req: Request, res: Response) => {
+export const getMeController = async (req: AppRequest, res: Response) => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = req.context?.userId;
 
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -13,25 +14,43 @@ export const getMeController = async (req: Request, res: Response) => {
 
     const user = await service.getMe(userId);
 
-    console.log("2 - SERVICE RESULT:", user);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
     return res.json(user);
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
 };
-export const updateProfile = async (req: Request, res: Response) => {
-  const userId = (req as any).user.id;
-  const { name } = req.body;
 
-  const updated = await service.updateProfile(userId, name);
+export const updateProfile = async (req: AppRequest, res: Response) => {
+  try {
+    const userId = req.context?.userId;
 
-  res.json(updated);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: "Name is required" });
+    }
+
+    const updated = await service.updateProfile(userId, name);
+    return res.json(updated);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
 };
 
-export const changePasswordController = async (req: Request, res: Response) => {
+export const changePasswordController = async (req: AppRequest, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = req.context?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
     const { currentPassword, newPassword } = req.body;
 
@@ -51,11 +70,22 @@ export const changePasswordController = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteSessions = async (req: Request, res: Response) => {
-  const userId = (req as any).user.id;
-  const { appId } = req.body;
+export const deleteSessions = async (req: AppRequest, res: Response) => {
+  try {
+    const userId = req.context?.userId;
 
-  const result = await service.revokeSessions(userId, appId);
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
-  res.json(result);
+    const { appId } = req.body;
+    if (!appId) {
+      return res.status(400).json({ error: "appId is required" });
+    }
+
+    const result = await service.revokeSessions(userId, appId);
+    return res.json(result);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
 };

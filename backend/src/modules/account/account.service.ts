@@ -20,13 +20,16 @@ export const updateProfile = async (userId: number, name: string) => {
   return updated;
 };
 export const getMe = async (userId: number) => {
-  const user = await db.query.users.findFirst({
-    where: (user, { eq }) => eq(user.id, userId),
-  });
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
 
-  console.log("1 - DB RESULT:", user);
+  if (!user) return null;
 
-  return user;
+  const { password, ...rest } = user;
+  return rest;
 };
 
 export const changePassword = async (
@@ -34,9 +37,11 @@ export const changePassword = async (
   currentPassword: string,
   newPassword: string
 ) => {
-  const user = await db.query.users.findFirst({
-    where: (user, { eq }) => eq(user.id, userId),
-  });
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
 
   if (!user) throw new Error("User not found");
 
@@ -53,10 +58,11 @@ export const changePassword = async (
 };
 
 export const revokeSessions = async (userId: number, appId: number) => {
-  return db.delete(userApps).where(
+  await db.delete(userApps).where(
     and(
-      eq(userApps.user_id, userId),
-      eq(userApps.app_id, appId)
+      eq(userApps.userId, userId),
+      eq(userApps.appId, appId)
     )
   );
+  return { success: true };
 };

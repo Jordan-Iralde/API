@@ -1,6 +1,6 @@
 import { Router, RequestHandler } from "express";
 import authRoutes from "../modules/auth/auth.routes";
-import { authMiddleware } from "../modules/auth/auth.middleware";
+import accountRoutes from "../modules/account/account.routes";
 import { resolveApp } from "../core/middlewares/resolve-app";
 import { sendMailController } from "../modules/mailer/sendMail.controller";
 import contactRoutes from "../modules/contact/contact.routes";
@@ -15,10 +15,7 @@ router.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-router.use("/account", authMiddleware, (req, res) => {
-  const userId = (req as any).context.userId;
-  res.json({ userId });
-});
+router.use("/account", accountRoutes);
 
 router.post(
   "/send",

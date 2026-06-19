@@ -7,6 +7,7 @@ import { users, apps, userApps, userSettings } from "../../core/db/schema";
 import { and, eq } from "drizzle-orm";
 
 export const registerUser = async (
+  name: string,
   email: string,
   password: string,
   appId: number
@@ -29,7 +30,7 @@ export const registerUser = async (
       .values({
         email,
         password: hashed,
-        name: "default",
+        name,
       })
       .returning();
 
@@ -43,25 +44,25 @@ export const registerUser = async (
     user = existing[0];
   }
 
-    // verificar si ya existe relación user-app
+  // verificar si ya existe relación user-app
   const existingRelation = await db
-  .select()
-  .from(userApps)
-  .where(
-    and(
-      eq(userApps.userId, user.id),
-      eq(userApps.appId, appId)
+    .select()
+    .from(userApps)
+    .where(
+      and(
+        eq(userApps.userId, user.id),
+        eq(userApps.appId, appId)
+      )
     )
-  )
-  .limit(1);
+    .limit(1);
 
-if (existingRelation.length === 0) {
-  await db.insert(userApps).values({
-    userId: user.id,
-    appId,
-    role: "user",
-  });
-}
+  if (existingRelation.length === 0) {
+    await db.insert(userApps).values({
+      userId: user.id,
+      appId,
+      role: "user",
+    });
+  }
 
 
   return { id: user.id, email: user.email };
@@ -98,11 +99,11 @@ export const loginUser = async (
 
   // si no existe relación, crearla
   if (access.length === 0) {
-      await db.insert(userApps).values({
-        userId: user.id,
-        appId,
-        role: "user",
-      });
+    await db.insert(userApps).values({
+      userId: user.id,
+      appId,
+      role: "user",
+    });
   }
 
   const token = jwt.sign(
