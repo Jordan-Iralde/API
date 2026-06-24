@@ -110,6 +110,8 @@ export const loginUser = async (
     {
       userId: user.id,
       appId,
+      email: user.email,
+      name: user.name,
     },
     ENV.JWT_SECRET,
     { expiresIn: "1h" }
