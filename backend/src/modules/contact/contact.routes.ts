@@ -1,10 +1,11 @@
 // /modules/contact/contact.routes.ts
 
-import { Router } from "express";
+import { Router, RequestHandler } from "express";
 import { contactController } from "./contact.controller";
+import { resolveApp } from "../../core/middlewares/resolve-app";
 
 const router = Router();
 
-router.post("/", contactController);
+router.post("/", resolveApp as RequestHandler, contactController as RequestHandler);
 
 export default router;

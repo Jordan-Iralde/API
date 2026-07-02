@@ -1,0 +1,28 @@
+{
+  "name": "@api/sdk",
+  "version": "0.1.0",
+  "description": "SDK para consumir el monolito API desde cualquier producto",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "publish": "npm run build && npm publish --registry https://npm.pkg.github.com"
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}
