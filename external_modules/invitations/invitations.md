@@ -1,0 +1,1 @@
+Aplicar las rutas a index.ts para todas las invitaciones
