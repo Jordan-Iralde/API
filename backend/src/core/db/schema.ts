@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   pgTable,
   serial,
@@ -63,20 +64,37 @@ export const userSettings = pgTable("user_settings", {
 
   userId: integer("user_id")
     .notNull()
-    .unique()
-    .references(() => users.id),
+    .unique(),
 
   theme: text("theme").default("light"),
 
   language: text("language").default("es"),
 
-  shortcuts: jsonb("shortcuts").default({}),
+  timezone: text("timezone")
+    .default("America/Argentina/Cordoba"),
 
-  preferences: jsonb("preferences").default({}),
+  emailNotifications: boolean("email_notifications")
+    .default(true),
 
-  twoFactorEnabled: boolean("two_factor_enabled").default(false),
+  pushNotifications: boolean("push_notifications")
+    .default(true),
 
-  createdAt: timestamp("created_at").defaultNow(),
+  marketingEmails: boolean("marketing_emails")
+    .default(false),
+
+  accessibility: jsonb("accessibility")
+    .default(sql`'{}'::jsonb`),
+
+  twoFactorEnabled: boolean("two_factor_enabled")
+    .default(false),
+
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).defaultNow(),
+
+  updatedAt: timestamp("updated_at", {
+    withTimezone: true,
+  }).defaultNow(),
 });
 
 /* =========================
