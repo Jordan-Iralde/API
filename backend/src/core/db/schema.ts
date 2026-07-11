@@ -14,12 +14,33 @@ import {
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull(),
-  password: text("password").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-});
 
+  name: text("name").notNull(),
+
+  email: text("email").notNull().unique(),
+
+  password: text("password").notNull(),
+
+  emailVerified: boolean("email_verified").default(false).notNull(),
+
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+})
+
+export const emailVerifications = pgTable("email_verifications", {
+  id: serial("id").primaryKey(),
+
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+
+  tokenHash: text("token_hash").notNull().unique(),
+
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+
+  verifiedAt: timestamp("verified_at", { withTimezone: true }),
+
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
 /* =========================
    APPS / TENANTS
 ========================= */
@@ -31,7 +52,11 @@ export const apps = pgTable("apps", {
 
   slug: text("slug").notNull().unique(),
 
-  createdAt: timestamp("created_at").defaultNow(),
+  frontendUrl: text("frontend_url").notNull(),
+
+  apiUrl: text("api_url").notNull(),
+
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
 /* =========================
@@ -43,15 +68,15 @@ export const userApps = pgTable("user_apps", {
 
   userId: integer("user_id")
     .notNull()
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: "cascade" }),
 
   appId: integer("app_id")
     .notNull()
-    .references(() => apps.id),
+    .references(() => apps.id, { onDelete: "cascade" }),
 
   role: text("role").default("user"),
 
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
 /* =========================
@@ -64,19 +89,23 @@ export const userSettings = pgTable("user_settings", {
   userId: integer("user_id")
     .notNull()
     .unique()
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: "cascade" }),
 
   theme: text("theme").default("light"),
-
   language: text("language").default("es"),
-
-  shortcuts: jsonb("shortcuts").default({}),
-
-  preferences: jsonb("preferences").default({}),
 
   twoFactorEnabled: boolean("two_factor_enabled").default(false),
 
-  createdAt: timestamp("created_at").defaultNow(),
+  timezone: text("timezone").default("America/Argentina/Cordoba"),
+
+  emailNotifications: boolean("email_notifications").default(true),
+  pushNotifications: boolean("push_notifications").default(true),
+  marketingEmails: boolean("marketing_emails").default(false),
+
+  accessibility: jsonb("accessibility").default({}),
+
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
 /* =========================
@@ -88,7 +117,7 @@ export const apiKeys = pgTable("api_keys", {
 
   appId: integer("app_id")
     .notNull()
-    .references(() => apps.id),
+    .references(() => apps.id, { onDelete: "cascade" }),
 
   keyHash: text("key_hash").notNull().unique(),
 
@@ -96,7 +125,7 @@ export const apiKeys = pgTable("api_keys", {
 
   active: boolean("active").default(true),
 
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
 /* =========================
@@ -108,7 +137,7 @@ export const emails = pgTable("emails", {
 
   appId: integer("app_id")
     .notNull()
-    .references(() => apps.id),
+    .references(() => apps.id, { onDelete: "cascade" }),
 
   to: text("to").notNull(),
 
@@ -120,7 +149,7 @@ export const emails = pgTable("emails", {
 
   error: text("error"),
 
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
 /* =========================
