@@ -6,6 +6,8 @@ import {
   integer,
   boolean,
   jsonb,
+  index,
+  uuid,
 } from "drizzle-orm/pg-core";
 
 /* =========================
@@ -109,6 +111,49 @@ export const userSettings = pgTable("user_settings", {
 });
 
 /* =========================
+   USER SESSIONS
+========================= */
+
+export const userSessions = pgTable(
+  "user_sessions",
+  {
+    id: serial("id").primaryKey(),
+
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, {
+        onDelete: "cascade",
+      }),
+
+    sessionId: uuid("session_id")
+      .notNull()
+      .unique(),
+
+    device: text("device"),
+
+    ip: text("ip"),
+
+    userAgent: text("user_agent"),
+
+    expiresAt: timestamp("expires_at", {
+      withTimezone: true,
+    }).notNull(),
+
+    revokedAt: timestamp("revoked_at", {
+      withTimezone: true,
+    }),
+
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+    }).defaultNow(),
+  },
+  (table) => ({
+    userIdx: index("idx_user_sessions_user")
+      .on(table.userId),
+  })
+);
+
+/* =========================
    API KEYS
 ========================= */
 
@@ -152,38 +197,3 @@ export const emails = pgTable("emails", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
-/* =========================
-   COURSES
-========================= */
-
-export const courses = pgTable("courses", {
-  id: serial("id").primaryKey(),
-
-  appId: integer("app_id")
-    .notNull()
-    .references(() => apps.id),
-
-  title: text("title").notNull(),
-
-  description: text("description").notNull(),
-
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-/* =========================
-   LESSONS
-========================= */
-
-export const lessons = pgTable("lessons", {
-  id: serial("id").primaryKey(),
-
-  courseId: integer("course_id")
-    .notNull()
-    .references(() => courses.id),
-
-  title: text("title").notNull(),
-
-  content: text("content").notNull(),
-
-  createdAt: timestamp("created_at").defaultNow(),
-});

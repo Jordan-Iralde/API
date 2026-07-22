@@ -5,5 +5,6 @@ export interface AppRequest extends Request {
     appId?: number;
     userId?: number;
     role?: string;
+    sessionId?: string;
   };
 }
