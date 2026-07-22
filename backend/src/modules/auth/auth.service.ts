@@ -7,7 +7,10 @@ import { mailerService } from "../mailer/mailer.service";
 
 import { users, apps, userApps, userSettings } from "../../core/db/schema";
 import { and, eq } from "drizzle-orm";
+import { SessionService } from "../sessions/session.service";
+import type { LoginDTO } from "./auth.types";
 
+const sessionService = new SessionService();
 import { getAppById, buildAppUrl, AppRoute } from "../../helpers/app-url.helper";
 export const registerUser = async (
   name: string,
@@ -95,36 +98,44 @@ export const registerUser = async (
   };
 };
 
-
 export const loginUser = async (
-  email: string,
-  password: string,
-  appId: number
+  dto: LoginDTO
 ) => {
+
   const result = await db
     .select()
     .from(users)
-    .where(eq(users.email, email))
+    .where(eq(users.email, dto.email))
     .limit(1);
 
   const user = result[0];
-  if (!user) throw new Error("Invalid credentials");
 
-  const valid = await bcrypt.compare(password, user.password);
-  if (!valid) throw new Error("Invalid credentials");
+  if (!user) {
+    throw new Error("Invalid credentials");
+  }
 
-  // 🔴 EMAIL GATE
+  const valid = await bcrypt.compare(
+    dto.password,
+    user.password
+  );
+
+  if (!valid) {
+    throw new Error("Invalid credentials");
+  }
+
+  // Email verification
   if (!user.emailVerified) {
     throw new Error("EMAIL_NOT_VERIFIED");
   }
 
+  // Ensure user has access to the app
   const access = await db
     .select()
     .from(userApps)
     .where(
       and(
         eq(userApps.userId, user.id),
-        eq(userApps.appId, appId)
+        eq(userApps.appId, dto.appId)
       )
     )
     .limit(1);
@@ -132,20 +143,35 @@ export const loginUser = async (
   if (access.length === 0) {
     await db.insert(userApps).values({
       userId: user.id,
-      appId,
+      appId: dto.appId,
       role: "user",
     });
   }
 
+  // Create session
+  const session = await sessionService.createSession({
+    userId: user.id,
+    device: dto.device,
+    ip: dto.ip,
+    userAgent: dto.userAgent,
+    expiresAt: new Date(
+      Date.now() + 1000 * 60 * 60 * 24 * 30 // 30 days
+    ),
+  });
+
+  // Generate JWT
   const token = jwt.sign(
     {
       userId: user.id,
-      appId,
+      appId: dto.appId,
       email: user.email,
       name: user.name,
+      sessionId: session.sessionId,
     },
     ENV.JWT_SECRET,
-    { expiresIn: "1h" }
+    {
+      expiresIn: "1h",
+    }
   );
 
   return { token };

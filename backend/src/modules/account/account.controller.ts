@@ -3,6 +3,8 @@
 import { Response } from "express";
 import { AppRequest } from "../../core/types/app-request";
 import * as service from "./account.service";
+import { SessionService } from "../sessions/session.service";
+const sessionService = new SessionService();
 
 export const getMeController = async (req: AppRequest, res: Response) => {
   try {
@@ -69,23 +71,132 @@ export const changePasswordController = async (req: AppRequest, res: Response) =
     return res.status(400).json({ error: err.message });
   }
 };
+export const getSessions = async (
+  req: AppRequest,
+  res: Response
+) => {
 
-export const deleteSessions = async (req: AppRequest, res: Response) => {
   try {
+
     const userId = req.context?.userId;
 
+
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({
+        error: "Unauthorized",
+      });
     }
 
-    const { appId } = req.body;
-    if (!appId) {
-      return res.status(400).json({ error: "appId is required" });
-    }
 
-    const result = await service.revokeSessions(userId, appId);
-    return res.json(result);
+    const sessions =
+      await service.getSessions(userId);
+
+
+    return res.json(sessions);
+
+
   } catch (err: any) {
-    return res.status(500).json({ error: err.message });
+
+    return res.status(500).json({
+      error: err.message,
+    });
+
+  }
+};
+
+
+
+export const revokeSession = async (
+  req: AppRequest,
+  res: Response
+) => {
+
+  try {
+
+    const userId = req.context?.userId;
+    const { sessionId } = req.params;
+
+
+    if (!userId) {
+      return res.status(401).json({
+        error: "Unauthorized",
+      });
+    }
+
+
+    if (typeof sessionId !== "string") {
+      return res.status(400).json({
+        error: "Invalid session id",
+      });
+    }
+
+
+    await service.revokeSession(
+      userId,
+      sessionId
+    );
+
+
+    return res.sendStatus(204);
+
+
+  } catch (err: any) {
+
+    if (err.message === "Forbidden") {
+      return res.status(403).json({
+        error: err.message,
+      });
+    }
+
+
+    if (
+      err.message === "Session not found" ||
+      err.message === "Session already revoked"
+    ) {
+      return res.status(400).json({
+        error: err.message,
+      });
+    }
+
+
+    return res.status(500).json({
+      error: err.message,
+    });
+
+  }
+};
+
+
+
+export const revokeAllSessions = async (
+  req: AppRequest,
+  res: Response
+) => {
+
+  try {
+
+    const userId = req.context?.userId;
+
+
+    if (!userId) {
+      return res.status(401).json({
+        error: "Unauthorized",
+      });
+    }
+
+
+    const result =
+      await service.revokeAllSessions(userId);
+
+
+    return res.json(result);
+
+
+  } catch (err: any) {
+
+    return res.status(500).json({
+      error: err.message,
+    });
+
   }
 };
