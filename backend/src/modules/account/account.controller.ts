@@ -79,7 +79,7 @@ export const getSessions = async (
   try {
 
     const userId = req.context?.userId;
-
+    console.log(userId);
 
     if (!userId) {
       return res.status(401).json({
@@ -89,9 +89,10 @@ export const getSessions = async (
 
 
     const sessions =
-      await service.getSessions(userId);
-
-
+      await service.getSessions(
+        req.context?.userId!,
+        req.context?.sessionId!
+      );
     return res.json(sessions);
 
 

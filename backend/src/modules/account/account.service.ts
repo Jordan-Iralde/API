@@ -97,10 +97,19 @@ export const changePassword = async (
 
 
 export const getSessions = async (
-  userId: number
+  userId: number,
+  currentSessionId: string
 ) => {
 
-  return sessionService.getUserSessions(userId);
+  const sessions =
+    await sessionService.getUserSessions(userId);
+
+
+  return sessions.map(session => ({
+    ...session,
+    isCurrent:
+      session.sessionId === currentSessionId
+  }));
 
 };
 

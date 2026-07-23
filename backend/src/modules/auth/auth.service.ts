@@ -174,5 +174,5 @@ export const loginUser = async (
     }
   );
 
-  return { token };
+  return { token, sessions: [session] };
 };

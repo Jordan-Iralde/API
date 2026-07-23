@@ -1,8 +1,7 @@
 import { db } from "../../core/db";
 import { userSessions } from "../../core/db/schema";
-import { eq, lt } from "drizzle-orm";
 import { Session } from "./session.types";
-
+import { eq, lt, and, isNull, gt } from "drizzle-orm";
 export class SessionRepository {
 
     async create(session: Session): Promise<void> {
@@ -56,8 +55,13 @@ export class SessionRepository {
 
         const sessions =
             await db.query.userSessions.findMany({
-                where: eq(userSessions.userId, userId),
+                where: and(
+                    eq(userSessions.userId, userId),
+                    isNull(userSessions.revokedAt),
+                    gt(userSessions.expiresAt, new Date())
+                ),
             });
+
 
         return sessions.map(session => ({
             sessionId: session.sessionId,
